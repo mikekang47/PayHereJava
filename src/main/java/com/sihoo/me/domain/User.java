@@ -3,11 +3,12 @@ package com.sihoo.me.domain;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.sihoo.me.error.PasswordNotMathException;
+import com.sihoo.me.dto.UserResponse;
+import com.sihoo.me.error.PasswordNotMatchException;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +20,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @Builder
+@Table(name = "users")
 public class User {
 	@Id
 	@GeneratedValue
@@ -32,8 +34,7 @@ public class User {
 
 	private boolean isDeleted;
 
-	public static User createUser(String nickName, String email, String password) {
-		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+	public static User createUser(String nickName, String email, String password, PasswordEncoder passwordEncoder) {
 		String encodedPassword = passwordEncoder.encode(password);
 
 		return User.builder()
@@ -43,13 +44,13 @@ public class User {
 			.build();
 	}
 
-	public void updateUser(String nickName, String currentPassword, String newPassword) {
-		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+	public void updateUser(String nickName, String currentPassword, String newPassword,
+		PasswordEncoder passwordEncoder) {
 
 		boolean matches = passwordEncoder.matches(currentPassword, this.password);
 
 		if (!matches) {
-			throw new PasswordNotMathException("[Error] 비밀번호가 일치하지 않습니다. (UserId: " + this.id + ")");
+			throw new PasswordNotMatchException("[Error] 비밀번호가 일치하지 않습니다. (UserId: " + this.id + ")");
 		}
 
 		String encodedPassword = passwordEncoder.encode(newPassword);
@@ -60,5 +61,9 @@ public class User {
 
 	public void deleteUser() {
 		this.isDeleted = true;
+	}
+
+	public UserResponse toResponse() {
+		return new UserResponse(this.id, this.nickName, this.email);
 	}
 }
