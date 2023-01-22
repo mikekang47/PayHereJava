@@ -15,7 +15,10 @@ public class UserBaseRequest {
 	@NotEmpty
 	private String email;
 
+	@NotEmpty
+
 	private String nickName;
 
+	@NotEmpty
 	private String password;
 }
